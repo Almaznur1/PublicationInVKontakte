@@ -1,6 +1,6 @@
 import requests
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 from random import randint
 
 
@@ -18,7 +18,7 @@ def fetch_comics():  # step 1, 2
 
     response = requests.get(img_url)
     with open(
-        f'{os.path.dirname(os.path.abspath(__file__))}\comics.png', 'wb'
+        f'{os.path.dirname(os.path.abspath(__file__))}\\comics.png', 'wb'
             ) as img:
         img.write(response.content)
     return comment
@@ -37,17 +37,15 @@ def get_wall_upload_server(access_token):  # step 8
 
 
 def wall_upload(access_token, upload_url):  # step 9
-    url = upload_url
     params = {
         'access_token': f'{access_token}',
         'v': '5.131',
         }
     with open(f'{os.path.dirname(os.path.abspath(__file__))}\comics.png', 'rb') as img:
-        url = upload_url
         file = {
             'photo': img,
         }
-        response = requests.post(url, params=params, files=file)
+        response = requests.post(upload_url, params=params, files=file)
     response.raise_for_status()
     response = response.json()
     photo = {
@@ -90,7 +88,7 @@ def wall_post(access_token, comment, photo_id, photo_owner_id, group_id):  # ste
 
 
 def delete_comics():
-    os.remove(f'{os.path.dirname(os.path.abspath(__file__))}\comics.png')
+    os.remove(f'{os.path.dirname(os.path.abspath(__file__))}\\comics.png')
 
 
 def main():
