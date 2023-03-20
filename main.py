@@ -15,8 +15,11 @@ def fetch_comics():  # step 1, 2
     response = response.json()
     img_url = response['img']
     comment = response['alt']
+
     response = requests.get(img_url)
-    with open('comix.png', 'wb') as img:
+    with open(
+        f'{os.path.dirname(os.path.abspath(__file__))}\comics.png', 'wb'
+            ) as img:
         img.write(response.content)
     return comment
 
@@ -29,10 +32,7 @@ def get_wall_upload_server(access_token):  # step 8
         }
     response = requests.get(url, params=params)
     response.raise_for_status()
-    response = response.json()['response']
-    upload_url = response['upload_url']
-    album_id = response['album_id']
-    user_id = response['user_id']
+    upload_url = response.json()['response']['upload_url']
     return upload_url
 
 
@@ -41,14 +41,13 @@ def wall_upload(access_token, upload_url):  # step 9
     params = {
         'access_token': f'{access_token}',
         'v': '5.131',
-        'group_id': '219393195',
         }
-    with open('comix.png', 'rb') as file:
+    with open(f'{os.path.dirname(os.path.abspath(__file__))}\comics.png', 'rb') as img:
         url = upload_url
-        files = {
-            'photo': file,
+        file = {
+            'photo': img,
         }
-        response = requests.post(url, params=params, files=files)
+        response = requests.post(url, params=params, files=file)
     response.raise_for_status()
     response = response.json()
     photo = {
@@ -76,12 +75,12 @@ def save_wall_photo(access_token, photo):  # step 10
     return photo_id, photo_owner_id
 
 
-def wall_post(access_token, comment, photo_id, photo_owner_id):
+def wall_post(access_token, comment, photo_id, photo_owner_id, group_id):  # step 11
     url = 'https://api.vk.com/method/wall.post'
     params = {
         'access_token': f'{access_token}',
         'v': '5.131',
-        'owner_id': '-219393195',
+        'owner_id': f'-{group_id}',
         'from_group': '0',
         'attachments': f'photo{photo_owner_id}_{photo_id}',
         'message': comment,
@@ -90,28 +89,21 @@ def wall_post(access_token, comment, photo_id, photo_owner_id):
     response.raise_for_status()
 
 
-def get_groups(access_token):  # step 7 возращает имеющиеся группы
-    url = 'https://api.vk.com/method/groups.get'
-    params = {
-        'access_token': f'{access_token}',
-        'v': '5.131',
-        'extended': '1',
-        }
-    response = requests.get(url, params=params)
-    response.raise_for_status()
+def delete_comics():
+    os.remove(f'{os.path.dirname(os.path.abspath(__file__))}\comics.png')
 
 
 def main():
     load_dotenv()
     access_token = os.environ['VK_ACCESS_TOKEN']
+    group_id = os.environ['GROUP_ID']
 
     comment = fetch_comics()
     upload_url = get_wall_upload_server(access_token)
     photo = wall_upload(access_token, upload_url)
     photo_id, photo_owner_id = save_wall_photo(access_token, photo)
-    wall_post(access_token, comment, photo_id, photo_owner_id)
-
-    # get_groups(access_token)
+    wall_post(access_token, comment, photo_id, photo_owner_id, group_id)
+    delete_comics()
 
 
 if __name__ == '__main__':
