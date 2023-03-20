@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from random import randint
 
 
-def fetch_comics():  # step 1, 2
+def fetch_comics():
     response = requests.get('https://xkcd.com/info.0.json')
     response.raise_for_status()
 
@@ -24,7 +24,7 @@ def fetch_comics():  # step 1, 2
     return comment
 
 
-def get_wall_upload_server(access_token):  # step 8
+def get_wall_upload_server(access_token):
     url = 'https://api.vk.com/method/photos.getWallUploadServer'
     params = {
         'access_token': f'{access_token}',
@@ -36,7 +36,7 @@ def get_wall_upload_server(access_token):  # step 8
     return upload_url
 
 
-def wall_upload(access_token, upload_url):  # step 9
+def wall_upload(access_token, upload_url):
     params = {
         'access_token': f'{access_token}',
         'v': '5.131',
@@ -56,7 +56,7 @@ def wall_upload(access_token, upload_url):  # step 9
     return photo
 
 
-def save_wall_photo(access_token, photo):  # step 10
+def save_wall_photo(access_token, photo):
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
         'access_token': f'{access_token}',
@@ -73,7 +73,7 @@ def save_wall_photo(access_token, photo):  # step 10
     return photo_id, photo_owner_id
 
 
-def wall_post(access_token, comment, photo_id, photo_owner_id, group_id):  # step 11
+def wall_post(access_token, comment, photo_id, photo_owner_id, group_id):
     url = 'https://api.vk.com/method/wall.post'
     params = {
         'access_token': f'{access_token}',
