@@ -1,15 +1,20 @@
 import requests
 from dotenv import load_dotenv
 import os
+from random import randint
 
 
 def fetch_comics():  # step 1, 2
     response = requests.get('https://xkcd.com/info.0.json')
     response.raise_for_status()
+
+    comics_count = response.json()['num']
+    response = requests.get(
+        f'https://xkcd.com/{randint(1, comics_count)}/info.0.json'
+        )
     response = response.json()
     img_url = response['img']
     comment = response['alt']
-
     response = requests.get(img_url)
     with open('comix.png', 'wb') as img:
         img.write(response.content)
@@ -83,11 +88,6 @@ def wall_post(access_token, comment, photo_id, photo_owner_id):
         }
     response = requests.post(url, params=params)
     response.raise_for_status()
-    print(response.json())
-
-
-def wall_get():  # Возвращает список записей со стены пользователя или сообщества.
-    pass
 
 
 def get_groups(access_token):  # step 7 возращает имеющиеся группы
@@ -109,9 +109,10 @@ def main():
     upload_url = get_wall_upload_server(access_token)
     photo = wall_upload(access_token, upload_url)
     photo_id, photo_owner_id = save_wall_photo(access_token, photo)
-
     wall_post(access_token, comment, photo_id, photo_owner_id)
+
     # get_groups(access_token)
+
 
 if __name__ == '__main__':
     main()
