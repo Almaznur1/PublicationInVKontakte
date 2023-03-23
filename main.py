@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from random import randint
 
 
-def fetch_comics():
+def fetch_random_comic():
     response = requests.get('https://xkcd.com/info.0.json')
     response.raise_for_status()
 
@@ -36,7 +36,7 @@ def get_wall_upload_server(access_token):
     return upload_url
 
 
-def wall_upload(access_token, upload_url):
+def upload_on_wall(access_token, upload_url):
     params = {
         'access_token': f'{access_token}',
         'v': '5.131',
@@ -73,7 +73,7 @@ def save_wall_photo(access_token, photo):
     return photo_id, photo_owner_id
 
 
-def wall_post(access_token, comment, photo_id, photo_owner_id, group_id):
+def post_on_wall(access_token, comment, photo_id, photo_owner_id, group_id):
     url = 'https://api.vk.com/method/wall.post'
     params = {
         'access_token': f'{access_token}',
@@ -87,21 +87,17 @@ def wall_post(access_token, comment, photo_id, photo_owner_id, group_id):
     response.raise_for_status()
 
 
-def delete_comics():
-    os.remove(f'{os.path.dirname(os.path.abspath(__file__))}\\comics.png')
-
-
 def main():
     load_dotenv()
     access_token = os.environ['VK_ACCESS_TOKEN']
     group_id = os.environ['GROUP_ID']
 
-    comment = fetch_comics()
+    comment = fetch_random_comic()
     upload_url = get_wall_upload_server(access_token)
-    photo = wall_upload(access_token, upload_url)
+    photo = upload_on_wall(access_token, upload_url)
     photo_id, photo_owner_id = save_wall_photo(access_token, photo)
-    wall_post(access_token, comment, photo_id, photo_owner_id, group_id)
-    delete_comics()
+    post_on_wall(access_token, comment, photo_id, photo_owner_id, group_id)
+    os.remove(f'{os.path.dirname(os.path.abspath(__file__))}\\comics.png')
 
 
 if __name__ == '__main__':
