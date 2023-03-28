@@ -4,6 +4,14 @@ from dotenv import load_dotenv
 from random import randint
 
 
+def process_vk_api_response(response):
+    if 'error' in response:
+        raise requests.HTTPError(
+            f'''Код ошибки: {response['error']['error_code']}
+            Ошибка: {response['error']['error_msg']}'''
+            )
+
+
 def fetch_random_comic():
     response = requests.get('https://xkcd.com/info.0.json')
     response.raise_for_status()
@@ -32,7 +40,11 @@ def get_wall_upload_server(access_token, api_version):
         }
     response = requests.get(url, params=params)
     response.raise_for_status()
-    upload_url = response.json()['response']['upload_url']
+
+    response = response.json()
+    process_vk_api_response(response)
+
+    upload_url = response['response']['upload_url']
     return upload_url
 
 
@@ -47,7 +59,10 @@ def upload_on_wall(access_token, upload_url, api_version):
         }
         response = requests.post(upload_url, params=params, files=file)
     response.raise_for_status()
+
     response = response.json()
+    process_vk_api_response(response)
+
     server = response['server']
     photo = response['photo']
     hash = response['hash']
@@ -65,7 +80,10 @@ def save_wall_photo(access_token, server, photo, hash, api_version):
         }
     response = requests.post(url, params=params)
     response.raise_for_status()
+
     response = response.json()
+    process_vk_api_response(response)
+
     photo_id = response['response'][0]['id']
     photo_owner_id = response['response'][0]['owner_id']
     return photo_id, photo_owner_id
@@ -85,6 +103,8 @@ def post_on_wall(
         }
     response = requests.post(url, params=params)
     response.raise_for_status()
+
+    process_vk_api_response(response.json())
 
 
 def main():
