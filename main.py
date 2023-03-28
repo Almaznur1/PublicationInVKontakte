@@ -24,11 +24,11 @@ def fetch_random_comic():
     return comment
 
 
-def get_wall_upload_server(access_token):
+def get_wall_upload_server(access_token, api_version):
     url = 'https://api.vk.com/method/photos.getWallUploadServer'
     params = {
-        'access_token': f'{access_token}',
-        'v': '5.131',
+        'access_token': access_token,
+        'v': api_version,
         }
     response = requests.get(url, params=params)
     response.raise_for_status()
@@ -36,10 +36,10 @@ def get_wall_upload_server(access_token):
     return upload_url
 
 
-def upload_on_wall(access_token, upload_url):
+def upload_on_wall(access_token, upload_url, api_version):
     params = {
-        'access_token': f'{access_token}',
-        'v': '5.131',
+        'access_token': access_token,
+        'v': api_version,
         }
     with open(f'{os.path.dirname(os.path.abspath(__file__))}\comics.png', 'rb') as img:
         file = {
@@ -48,22 +48,20 @@ def upload_on_wall(access_token, upload_url):
         response = requests.post(upload_url, params=params, files=file)
     response.raise_for_status()
     response = response.json()
-    photo = {
-        'server': response['server'],
-        'photo': response['photo'],
-        'hash': response['hash'],
-        }
-    return photo
+    server = response['server']
+    photo = response['photo']
+    hash = response['hash']
+    return server, photo, hash
 
 
-def save_wall_photo(access_token, photo):
+def save_wall_photo(access_token, server, photo, hash, api_version):
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
-        'access_token': f'{access_token}',
-        'v': '5.131',
-        'server': photo['server'],
-        'photo': photo['photo'],
-        'hash': photo['hash'],
+        'access_token': access_token,
+        'v': api_version,
+        'server': server,
+        'photo': photo,
+        'hash': hash,
         }
     response = requests.post(url, params=params)
     response.raise_for_status()
@@ -73,13 +71,15 @@ def save_wall_photo(access_token, photo):
     return photo_id, photo_owner_id
 
 
-def post_on_wall(access_token, comment, photo_id, photo_owner_id, group_id):
+def post_on_wall(
+        access_token, comment, photo_id, photo_owner_id, group_id, api_version
+        ):
     url = 'https://api.vk.com/method/wall.post'
     params = {
-        'access_token': f'{access_token}',
-        'v': '5.131',
+        'access_token': access_token,
+        'v': api_version,
         'owner_id': f'-{group_id}',
-        'from_group': '0',
+        'from_group': '1',
         'attachments': f'photo{photo_owner_id}_{photo_id}',
         'message': comment,
         }
@@ -91,12 +91,17 @@ def main():
     load_dotenv()
     access_token = os.environ['VK_ACCESS_TOKEN']
     group_id = os.environ['GROUP_ID']
+    api_version = '5.131'
 
     comment = fetch_random_comic()
-    upload_url = get_wall_upload_server(access_token)
-    photo = upload_on_wall(access_token, upload_url)
-    photo_id, photo_owner_id = save_wall_photo(access_token, photo)
-    post_on_wall(access_token, comment, photo_id, photo_owner_id, group_id)
+    upload_url = get_wall_upload_server(access_token, api_version)
+    server, photo, hash = upload_on_wall(access_token, upload_url, api_version)
+    photo_id, photo_owner_id = save_wall_photo(
+        access_token, server, photo, hash, api_version
+        )
+    post_on_wall(
+        access_token, comment, photo_id, photo_owner_id, group_id, api_version
+        )
     os.remove(f'{os.path.dirname(os.path.abspath(__file__))}\\comics.png')
 
 
