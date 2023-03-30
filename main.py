@@ -65,8 +65,8 @@ def upload_on_wall(access_token, upload_url, api_version):
 
     server = response['server']
     photo = response['photo']
-    hash = response['hash']
-    return server, photo, hash
+    photo_hash = response['hash']
+    return server, photo, photo_hash
 
 
 def save_wall_photo(access_token, server, photo, hash, api_version):
@@ -114,15 +114,16 @@ def main():
     api_version = '5.131'
 
     comment = fetch_random_comic()
-    upload_url = get_wall_upload_server(access_token, api_version)
-    server, photo, hash = upload_on_wall(access_token, upload_url, api_version)
-    photo_id, photo_owner_id = save_wall_photo(
-        access_token, server, photo, hash, api_version
-        )
-    post_on_wall(
-        access_token, comment, photo_id, photo_owner_id, group_id, api_version
-        )
-    os.remove(f'{os.path.dirname(os.path.abspath(__file__))}\\comics.png')
+    try:
+        upload_url = get_wall_upload_server(access_token, api_version)
+        server, photo, photo_hash = upload_on_wall(access_token, upload_url,
+                                                   api_version)
+        photo_id, photo_owner_id = save_wall_photo(access_token, server, photo,
+                                                   photo_hash, api_version)
+        post_on_wall(access_token, comment, photo_id, photo_owner_id,
+                     group_id, api_version)
+    finally:
+        os.remove(f'{os.path.dirname(os.path.abspath(__file__))}\\comics.png')
 
 
 if __name__ == '__main__':
