@@ -69,14 +69,14 @@ def upload_on_wall(access_token, upload_url, api_version):
     return server, photo, photo_hash
 
 
-def save_wall_photo(access_token, server, photo, hash, api_version):
+def save_wall_photo(access_token, server, photo, photo_hash, api_version):
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
         'access_token': access_token,
         'v': api_version,
         'server': server,
         'photo': photo,
-        'hash': hash,
+        'hash': photo_hash,
         }
     response = requests.post(url, params=params)
     response.raise_for_status()
